@@ -135,7 +135,8 @@ $this->_setLog(['mess' => 'success make OAuth']);
                 foreach ($data['response'] as $response) {
                     $pname = $album['title'].'_'.$album['description'].'_'.$response['text'];
                     $pname = self::POSTFIX_IMAGE_NAME.'_'.self::_get_in_translate_to_en($pname).'_'.$response['pid'];
-                    $pname = preg_replace('/(\.|\/|<.*>| )/', '_', $pname);
+                    $pname = preg_replace('/(\,|\.|\/|<.*>| )/', '_', $pname);
+                    $pname = preg_replace('/(_){1,}/', '_', $pname);
                     $mainPhoto = 0;
                     if ($albumThumbs[$key] == $response['pid']) {
                         $mainPhoto = 1;
