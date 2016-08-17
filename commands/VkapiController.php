@@ -31,6 +31,7 @@ class VkapiController extends Controller
     const VK_GROUP_ID = 113418826;
     const POSTFIX_IMAGE_NAME = 'ripfedosik_by';
     private $_vkObject;
+    private $_albumID = '227674630';
 
     private static function _setLog($data)
     {
@@ -53,8 +54,9 @@ $this->_setLog(['mess' => 'starting...']);
         $this->_vkObject = Yii::$app->authClientCollection->getClient('vkontakte');
         if ($this->_makeOAuth()) {
 $this->_setLog(['mess' => 'success make OAuth']);
-            $response = $this->_createAlbum();
-            $this->_createAlbumPhoto($response['albumData'], $response['albumThumbs']);
+            //$response = $this->_createAlbum();
+            //$this->_createAlbumPhoto($response['albumData'], $response['albumThumbs']);
+            $this->getPhotos();
         }
     }
 
@@ -77,35 +79,76 @@ $this->_setLog(['mess' => 'success make OAuth']);
         }
     }
 
-    private function _createAlbum()
+    private function getPhotos()
     {
-        $albumData = [];
-        $albumThumbs = [];
-        $data = $this->_vkObject->api('photos.getAlbums', 'GET', ['owner_id' => '-'.self::VK_GROUP_ID]);
+        sleep(1);
+        $data = $this->_vkObject->api(
+            'photos.get',
+            'GET',
+            [
+                'owner_id' => '-' . self::VK_GROUP_ID,
+                'album_id' => $this->_albumID,
+                'rev' => 0,
+                'extended' => 0,
+            ]
+        );
+
+        $this->_setLog(['mess' => 'find ('.count($data['response']).') photo in album']);
+
         if(isset($data, $data['response'], $data['response'][0])) {
             foreach ($data['response'] as $response) {
-                $albumThumbs[] = (int)$response['thumb_id'];
-                $albumData[] = [
-                    'album_id' => $response['aid'],
-                    'title' => $response['title'],
-                    'description' => $response['description'],
+                $pname = 'borisov';
+                $pname = self::POSTFIX_IMAGE_NAME.'_'.self::_get_in_translate_to_en($pname).'_'.$response['pid'];
+                $pname = preg_replace('/(\,|\.|\/|<.*>| )/', '_', $pname);
+                $pname = preg_replace('/(_){1,}/', '_', $pname);
+                $photoData[] = [
+                    'photo_id' => (int)$response['pid'],
+                    'vk_photo_small' => $response['src_small'],
+                    'vk_photo_big' => $response['src_big'],
+                    'photo_name' => $pname.'.jpg',
+                    'text' => $response['text'],
                     'vk_created' => (int)$response['created'],
-                    'vk_updated' => (int)$response['updated'],
                     'created_at' => time(),
                     'updated_at' => time(),
                 ];
             }
-            if($albumData && $albumData[0]) {
+
+            if ($photoData && $photoData[0]) {
+
                 Yii::$app->db->createCommand('TRUNCATE `'.$this->_getClassBaseName(new Photos()).'`')->execute();
-                Yii::$app->db->createCommand('TRUNCATE `'.$this->_getClassBaseName(new Album()).'`')->execute();
-                $this->removeDir(Yii::getAlias('@fullMediaDir/'));
-                Yii::$app->db->createCommand()->batchInsert(Album::tableName(), array_keys($albumData[0]), $albumData)->execute();
+
+                $isInsert = Yii::$app->db->createCommand()->batchInsert(
+                    Photos::tableName(),
+                    array_keys($photoData[0]),
+                    $photoData
+                )->execute();
+
+                if ($isInsert) {
+
+                    $this->removeDir(Yii::getAlias('@fullMediaDir/'));
+
+                    foreach ($photoData as $p_data) {
+                        $path_small = Yii::getAlias('@fullMediaDir/small/' . $p_data['photo_name']);
+                        if(!is_dir(dirname($path_small))) {
+                            mkdir(dirname($path_small), 0777, true);
+                        }
+                        $path_big = Yii::getAlias('@fullMediaDir/big/' . $p_data['photo_name']);
+                        if(!is_dir(dirname($path_big))) {
+                            mkdir(dirname($path_big), 0777, true);
+                        }
+
+                        $image = file_get_contents($p_data['vk_photo_small']);
+                        file_put_contents($path_small, $image);
+
+                        $image = file_get_contents($p_data['vk_photo_big']);
+                        file_put_contents($path_big, $image);
+                    }
+                    
+                    $this->_setLog(['mess' => 'save in path small: ' . $path_small]);
+                    $this->_setLog(['mess' => 'save in path big: ' . $path_big]);
+                }
             }
         }
-        return [
-            'albumData' => $albumData,
-            'albumThumbs' => $albumThumbs,
-        ];
     }
 
     private function _getClassBaseName($model)
@@ -113,68 +156,6 @@ $this->_setLog(['mess' => 'success make OAuth']);
         return strtolower(StringHelper::basename(get_class($model)));
     }
 
-    private function _createAlbumPhoto(array $albums, array $albumThumbs)
-    {
-        $photoData = [];
-        $data = [];
-        foreach ($albums as $key => $album) {
-            sleep(1);
-            $data = $this->_vkObject->api(
-                'photos.get',
-                'GET',
-                [
-                    'owner_id' => '-'.self::VK_GROUP_ID,
-                    'album_id' => $album['album_id'],
-                    'rev' => 0,
-                    'extended' => 0,
-                ]
-            );
-            if(isset($data, $data['response'], $data['response'][0])) {
-                $photoData = [];
-            $this->_setLog(['mess' => 'find ('.count($data['response']).') photo in album: '. $album['title'].'_'.$album['description']]);
-                foreach ($data['response'] as $response) {
-                    $pname = $album['title'].'_'.$album['description'].'_'.$response['text'];
-                    $pname = self::POSTFIX_IMAGE_NAME.'_'.self::_get_in_translate_to_en($pname).'_'.$response['pid'];
-                    $pname = preg_replace('/(\,|\.|\/|<.*>| )/', '_', $pname);
-                    $pname = preg_replace('/(_){1,}/', '_', $pname);
-                    $mainPhoto = 0;
-                    if ($albumThumbs[$key] == $response['pid']) {
-                        $mainPhoto = 1;
-                    }
-                    $photoData[] = [
-                        'album_id' => $response['aid'],
-                        'photo_id' => $response['pid'],
-                        'vk_photo' => isset($response['src_xbig']) ? $response['src_xbig'] : $response['src_big'],
-                        'photo_name' => $pname.'.jpg',
-                        'text' => $response['text'],
-                        'vk_created' => (int)$response['created'],
-                        'main_photo' => $mainPhoto,
-                        'created_at' => time(),
-                        'updated_at' => time(),
-                    ];
-                }
-                if($photoData && $photoData[0]) {
-                    $isInsert = Yii::$app->db->createCommand()->batchInsert(
-                        Photos::tableName(),
-                        array_keys($photoData[0]),
-                        $photoData
-                    )->execute();
-                    if ($isInsert) {
-                        foreach ($photoData as $p_data) {
-                            $path = Yii::getAlias('@fullMediaDir/'.$p_data['album_id'].'/'.$p_data['photo_name']);
-                            if(!is_dir(dirname($path))) {
-                                mkdir(dirname($path), 0777, true);
-                            }
-                            $image = file_get_contents($p_data['vk_photo']);
-                            file_put_contents($path, $image);
-                        }
-                        $this->_setLog(['mess' => 'save in path: ' . $path]);
-                    }
-                }
-                $this->_setLog(['mess' => 'Left ('.(count($albums) - ($key+1)).')']);
-            }
-        }
-    }
 
     /** @var $vk VKontakte */
     private function _makeOAuth()
@@ -205,7 +186,6 @@ $this->_setLog(['mess' => 'success make OAuth']);
 
         return false;
     }
-
 
     /**
      * @param $vk VK

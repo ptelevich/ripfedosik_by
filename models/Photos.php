@@ -11,7 +11,8 @@ use yii\behaviors\TimestampBehavior;
  * @property integer $id
  * @property integer $album_id
  * @property integer $photo_id
- * @property string $vk_photo
+ * @property string $vk_photo_small
+ * @property string $vk_photo_big
  * @property string $photo_name
  * @property string $text
  * @property integer $vk_created
@@ -35,9 +36,9 @@ class Photos extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id', 'album_id', 'photo_id', 'vk_photo', 'photo_name', 'text', 'vk_created', 'main_photo', 'created_at', 'updated_at'], 'required'],
-            [['id', 'album_id', 'photo_id', 'vk_created', 'created_at', 'updated_at'], 'integer'],
-            [['vk_photo', 'photo_name', 'text'], 'string', 'max' => 255]
+            [['id', 'photo_id', 'vk_photo_small', 'vk_photo_big', 'photo_name', 'text', 'vk_created', 'created_at', 'updated_at'], 'required'],
+            [['id', 'photo_id', 'vk_created', 'created_at', 'updated_at'], 'integer'],
+            [['vk_photo_small', 'vk_photo_big', 'photo_name', 'text'], 'string', 'max' => 255]
         ];
     }
 

@@ -56,13 +56,8 @@ class SiteController extends Controller
 
     public function actionIndex()
     {
-        $albums = Album::find()
-            ->select(['*'])
-            ->joinWith($this->_getClassBaseName(new Photos()))
-            ->where(['main_photo' => 1])
-            ->asArray()
-            ->all();
-        return $this->render('albums', compact('albums'));
+        $photos = Photos::find()->asArray()->all();
+        return $this->render('photos', compact('photos'));
     }
 
     private function _getClassBaseName($model)
