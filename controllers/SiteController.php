@@ -67,8 +67,10 @@ class SiteController extends Controller
 
     public function actionView($id)
     {
-        $photos = Photos::findAll(['album_id' => $id]);
-        return $this->render('view', compact('photos'));
+        return $this->goBack();
+
+        /*$photos = Photos::findAll(['album_id' => $id]);
+        return $this->render('view', compact('photos'));*/
     }
 
     public function actionLogin()
