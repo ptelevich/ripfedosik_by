@@ -15,5 +15,5 @@ return [
     'charset' => 'utf8',
 ];";
 
-    file_put_contents(__DIR__.'/../config/db.php', $content);
+    file_put_contents('../config/db.php', $content);
 }
