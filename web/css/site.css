@@ -89,3 +89,27 @@ a.desc:after {
     padding: 10px 20px;
     margin: 0 0 15px 0;
 }
+
+#poems {
+    margin: 0px;
+    padding: 0px;
+}
+#poems li {
+    list-style-type: none;
+    white-space: pre-line;
+    font-size: 14px;
+    line-height: 20px;
+    margin-bottom: 15px;
+    font-family: Verdana, sans-serif;
+    color: white;
+    text-align: center;
+    margin-top: 20px;
+    padding: 0px 10px;
+    border-top: 1px solid white;
+}
+#poems span {
+    font-weight: bold;
+    font-size: 20px;
+    display: block;
+    margin-top: 20px;
+}

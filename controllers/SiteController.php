@@ -99,4 +99,9 @@ class SiteController extends Controller
     {
         return $this->render('about');
     }
+
+    public function actionPoetry()
+    {
+        return $this->render('poetry');
+    }
 }

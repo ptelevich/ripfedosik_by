@@ -42,9 +42,11 @@ $siteLabel = 'Памяти Николая Николаевича Федосик�
         ],
     ]);
     echo Nav::widget([
-        'options' => ['class' => 'navbar-nav navbar-right'],
+        'options' => ['class' => 'navbar-nav navbar-left'],
         'items' => [
             //['label' => 'ГЛАВНАЯ', 'url' => ['/site/index']],
+            ['label' => 'ФОТО', 'url' => ['/site/index']],
+            ['label' => 'СТИХИ', 'url' => ['/site/poetry']],
             //['label' => 'О НАС', 'url' => ['/site/about']],
             //['label' => 'НАШИ КОНТАКТЫ', 'url' => ['/site/contact']],
             [
