@@ -52,6 +52,7 @@ $config = [
             'rules' => [
                 '' => 'site/index',
                 '<action>'=>'site/<action>',
+                'config/<action>/<param:\S+>' => 'config/<action>'
             ],
             // ...
         ]

@@ -4,6 +4,8 @@ namespace app\models;
 
 use Yii;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
+use yii\web\IdentityInterface;
 
 /**
  * This is the model class for table "User".
@@ -14,8 +16,9 @@ use yii\behaviors\TimestampBehavior;
  * @property integer $created_at
  * @property integer $updated_at
  */
-class User extends \yii\db\ActiveRecord
+class User extends ActiveRecord implements IdentityInterface
 {
+    protected $authKey;
     /**
      * @inheritdoc
      */
@@ -56,5 +59,46 @@ class User extends \yii\db\ActiveRecord
                 'class' => TimestampBehavior::className(),
             ],
         ];
+    }
+
+    public static function findIdentity($id)
+    {
+        return static::findOne($id);
+    }
+
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
+        return static::findOne(['access_token' => $token]);
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function getAuthKey()
+    {
+        return $this->authKey;
+    }
+
+    public function validateAuthKey($authKey)
+    {
+        return $this->authKey === $authKey;
+    }
+
+    public static function findByUsername($username)
+    {
+        $users = self::find()->all();
+
+        foreach ($users as $user) {
+            if ($user['username'] == $username) {
+                return new static($user);
+            }
+        }
+    }
+
+    public function validatePassword($password)
+    {
+        return $this->password === md5($password);
     }
 }

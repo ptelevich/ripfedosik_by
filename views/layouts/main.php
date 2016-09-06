@@ -54,14 +54,21 @@ $siteLabel = 'Памяти Николая Николаевича Федосик�
                 'url' => '//vk.com/ripfedosik',
                 'linkOptions' => ['target' => '_blank'],
                 'encode' => false,
+            ],
+            Yii::$app->user->isGuest ?
+            ['label' => ''] :
+            [
+                'label' => 'Logout (' . Yii::$app->user->identity->username . ')',
+                'url' => ['/site/logout'],
+                'linkOptions' => ['data-method' => 'post']
+            ],
+            Yii::$app->user->isGuest ?
+            ['label' => ''] :
+            [
+                'label' => 'ConfigDB',
+                'url' => ['/config/db'],
+                'linkOptions' => ['data-method' => 'post']
             ]
-            /*Yii::$app->user->isGuest ?
-                ['label' => 'Login', 'url' => ['/site/login']] :
-                [
-                    'label' => 'Logout (' . Yii::$app->user->identity->username . ')',
-                    'url' => ['/site/logout'],
-                    'linkOptions' => ['data-method' => 'post']
-                ],*/
         ],
     ]);
     NavBar::end();

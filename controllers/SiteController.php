@@ -2,18 +2,12 @@
 
 namespace app\controllers;
 
-use app\models\Album;
 use app\models\Photos;
-use app\models\User;
 use Yii;
-use yii\authclient\clients\VKontakte;
-use yii\authclient\OAuthToken;
 use yii\filters\AccessControl;
-use yii\helpers\Json;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
-use app\models\ContactForm;
 use yii\helpers\StringHelper;
 
 class SiteController extends Controller
